@@ -1,0 +1,5 @@
+npm run lint       # Run ESLint
+npm test          # Run tests with coverage
+npm run build     # Build your app
+npm start         # Start the app
+npm run dev       # Development mode with nodemon
