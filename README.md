@@ -1,4 +1,4 @@
-# jangu
+# jangu ®
 my py lib 
 myproject/
 ├── myproject/          # Project settings
