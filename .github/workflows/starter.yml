@@ -1,0 +1,14 @@
+# Start all services
+docker-compose up -d
+
+# Run migrations
+docker-compose exec web python manage.py migrate
+
+# Create superuser
+docker-compose exec web python manage.py createsuperuser
+
+# View logs
+docker-compose logs -f web
+
+# Stop services
+docker-compose down
