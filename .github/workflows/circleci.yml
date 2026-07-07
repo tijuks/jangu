@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# The Vault CLI is required for this script 
+# https://developer.hashicorp.com/vault/downloads
+
+# Set the token to access Vault. 
+# The variable name VAULT_TOKEN is the default that
+# is read by Vault if it is not already authenticated
+# Tokens can be generated from the Vault CLI 
+# https://developer.hashicorp.com/vault/docs/commands/token/create
+VAULT_TOKEN=$(vault token create -period=30m -field=token -tls-skip-verify)
+
+# Secrets will be read from a CSV file containing
+# a comma-separated username/password
+SECRETS_FILE="./secrets.csv"
+VAULT_KV_PATH="secret/circleci-demo/demo-secrets"
+
+# Get the username/password values by splitting 
+# the contents of the secrets file at the comma (,)
+USERNAME="$(cat $SECRETS_FILE | cut -d',' -f1)"
+PASSWORD="$(cat $SECRETS_FILE | cut -d',' -f2)"
+
+# Update the secret stored in Vault 
+# https://developer.hashicorp.com/vault/docs/secrets/kv/kv-v2
+vault kv put -tls-skip-verify  "$VAULT_KV_PATH" \
+	username="$USERNAME" \
+	password="$PASSWORD" version: 2.1
+
+jobs:
+  login-azure-with-oidc:
+    docker:
+      - image: cimg/azure:2023.07
+    steps:
+      - run:
+          name: az login using OIDC
+          command: |
+            az login \
+                --service-principal \
+                --user "${AZURE_CLIENT_ID}" \
+                --tenant "${AZURE_TENANT_ID}" \
+                --federated-token "${CIRCLE_OIDC_TOKEN}"
+      - run: az vm list
+
+workflows:
+  run:
+    jobs:
+      - login-azure-with-oidc:
+          context:
+            - OIDC-Azure
